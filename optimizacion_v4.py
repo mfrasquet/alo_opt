@@ -31,7 +31,7 @@ class Componente:
         self.id = id
         self.name = name
         self.inv = inv
-        self.inv_h = []
+        self.inv_acum_h = []
         self.hijos = hijos
         self.area = area
 
@@ -167,41 +167,36 @@ def check_inventario(tarea):
 
 def operario_bloqueado(op):
     op.proceso_h.append(op.proceso)
+    calculo_coste(op,hora_dia)
+    op.tarea_h.append('ocio')
+    op.ayudando_a_h.append('')
     return
 
 def calculo_coste(op,hora_dia):
     # Calculo el coste de trabajo de los operarios
     if op.tarea_anterior != op.tarea:
         if hora_dia == jornada_ini:
-            op.coste_acum += coste_hora
+            op.coste_acum_h.append(coste_hora)
         else: 
-            op.coste_acum += coste_hora * 1.1 #Aumento del coste por cambio de tarea
+            op.coste_acum_h.append(coste_hora*1.1) #Aumento del coste por cambio de tarea
     else:
-        op.coste_acum += coste_hora
+        op.coste_acum_h.append(coste_hora)
     return
 
 def operario_trabajando_nueva_tarea(op,superficie_libre):
     if op.ayudando_a == None: #Soy el operario principal de la tarea, los ayudantes no modifican inventario ni superficie
         for comp in op.tarea.componente:
-            #Modifico inventario de cada componentes de la tarea
-            comp.inv +=op.tarea.ritmo
-            #Reduzco la superficie libre ya que un nuevo componente ha sido fabricado
-            superficie_libre -= comp.area * op.tarea.ritmo
             
-        
+            comp.inv +=op.tarea.ritmo #Modifico inventario de cada componentes de la tarea
+            superficie_libre -= comp.area * op.tarea.ritmo #Reduzco la superficie libre ya que un nuevo componente ha sido fabricado
+            
             # Actualizo los hijos
             for hijo in comp.hijos:
-                # Reduzco el inventario de los hijos del componente al haber sido utilizados
-                hijo['comp'].inv -=hijo['unid_req'] * op.tarea.ritmo 
-                # Aumento la superficie libre ya que los hijos de ese componente han sido utilizados
-                superficie_libre += hijo['comp'].area * hijo['unid_req'] * op.tarea.ritmo 
-    else: #Estoy ayudando a alguien
-        print(op.name)
-        pass
+                hijo['comp'].inv -=hijo['unid_req'] * op.tarea.ritmo  # Reduzco el inventario de los hijos del componente al haber sido utilizados
+                superficie_libre += hijo['comp'].area * hijo['unid_req'] * op.tarea.ritmo  # Aumento la superficie libre ya que los hijos de ese componente han sido utilizados
     
-    # Todos los operarios consumen una hora de trabajo
     op.proceso_h.append(op.proceso)
-
+    op.ayudando_a_h.append('')
     calculo_coste(op,hora_dia)
 
         
@@ -223,7 +218,7 @@ def operario_sigue_en_tarea(op):
 
     data.loc[i,op.name+'_tar_ant'] = op.tarea_anterior.name
 
-    op.tarea = ocio
+
     op.tarea_anterior = op.tarea
 
     data.loc[i,op.name+'_coste'] = op.coste_acum
@@ -252,6 +247,7 @@ while i < num_max_steps and comp_6.inv < goal:
                         if check_inventario(tarea_activa):
                             if check_ayudantes(tarea_activa,operarios):
                                 op.tarea = tarea_activa
+                                op.tarea_h.append(tarea_activa.name)
                                 op.proceso = tarea_activa.horas_min
                                 data.loc[i,op.name+'_proceso'] = op.proceso
                                 if op.tarea.ayudantes_req > 0:
@@ -259,7 +255,9 @@ while i < num_max_steps and comp_6.inv < goal:
                                     ayudante = operarios[[i for i in range(len(operarios)) if operarios[i].proceso == 0][0]]
                                     #El operario le dice al primer operario libre que le ayude en su tarea
                                     ayudante.ayudando_a = op
+                                    ayudante.ayudando_a_h.append(op.name)
                                     ayudante.tarea = tarea_activa
+                                    ayudante.tarea_h.append(tarea_activa.name)
                                     ayudante.proceso = tarea_activa.horas_min
                                     #Registro en dataframe
                                     data.loc[i,ayudante.name+'_ayudando'] = op.name
@@ -281,12 +279,14 @@ while i < num_max_steps and comp_6.inv < goal:
             op.proceso = max(0,op.proceso -1)
             #Si la tarea ha terminado, reseteo las variables
             if op.proceso == 0:
-               op.tarea = ocio
                op.ayudando_a = None
             
     else:
         for op in operarios:
+            op.ayudando_a_h.append('')
             op.proceso_h.append(0)
+            op.coste_acum_h.append(0)
+            op.tarea_h.append('ocio')
         data.loc[i,'jornada'] = 'fuera'
 
 
@@ -294,6 +294,7 @@ while i < num_max_steps and comp_6.inv < goal:
 
     # Alimento el dataframe
     for comp in componentes:
+        comp.inv_acum_h.append(comp.inv)
         data.loc[i,comp.name] = comp.inv    
     
     data.loc[i,'superf'] = superficie_libre    
