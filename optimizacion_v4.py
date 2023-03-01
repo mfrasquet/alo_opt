@@ -165,18 +165,9 @@ def check_inventario(tarea):
                     return False
     return True
 
-def operario_bloqueado(op):
-    op.ayudando_a = None
-    op.tarea = 'ocio'
-    op.proceso = 0
-    
-    op.tarea_h.append(op.tarea)
-    op.proceso_h.append(op.proceso)
-    op.ayudando_a_h.append('')
-    
-
-    calculo_coste(op,hora.HOD)
-    return
+def operario_busca_ayudante(op,operarios):
+    # El operario busca otro operario libre para que le ayude
+    return operarios[[i for i in range(len(operarios)) if operarios[i].proceso == 0][0]]
 
 def calculo_coste(op,hora_dia):
     # Calculo el coste de trabajo de los operarios
@@ -188,6 +179,7 @@ def calculo_coste(op,hora_dia):
     else:
         op.coste_acum_h.append(coste_hora)
     return
+
 
 def operario_trabajando(op,superficie_libre):
     if op.ayudando_a == None: #Soy el operario principal de la tarea, los ayudantes no modifican inventario ni superficie
@@ -206,17 +198,23 @@ def operario_trabajando(op,superficie_libre):
     op.ayudando_a_h.append('')
     
     calculo_coste(op,hora.HOD)
-
-
     op.tarea_anterior = op.tarea
     return
 
-
-def operario_busca_ayudante(op,operarios):
-    # El operario busca otro operario libre para que le ayude
-    return operarios[[i for i in range(len(operarios)) if operarios[i].proceso == 0][0]]
-
+def operario_bloqueado(op):
+    op.ayudando_a = None
+    op.tarea = 'ocio'
+    op.proceso = 0
     
+    op.tarea_h.append(op.tarea)
+    op.proceso_h.append(op.proceso)
+    op.ayudando_a_h.append('')
+    
+
+    calculo_coste(op,hora.HOD)
+    op.tarea_anterior = op.tarea
+    return
+
 def operario_ayudando(op):
  
     op.tarea = op.ayudando_a.tarea.name
@@ -227,7 +225,7 @@ def operario_ayudando(op):
     op.ayudando_a_h.append(op.ayudando_a)
     
     calculo_coste(op,hora.HOD)
-    
+    op.tarea_anterior = op.tarea
     return
 
 hora = hora(0)
@@ -241,8 +239,6 @@ while hora.step < num_max_steps and comp_6.inv < goal:
                 # Estrategias de seleccion de tarea
                 
                 tarea_activa = random.choice(tareas)
-                if tarea_activa.name == 'ejes':
-                    d =5
                 
                 # ---------------------------------
                 
@@ -289,9 +285,7 @@ while hora.step < num_max_steps and comp_6.inv < goal:
 
 
 
-
-
-    # Alimento el dataframe
+    # Alimento el inventario de los componentes
     for comp in componentes:
         comp.inv_acum_h.append(comp.inv)
  
