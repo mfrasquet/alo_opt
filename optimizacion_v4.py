@@ -21,7 +21,14 @@ num_max_steps = 480 #número máximo horas en la simulación
 superficie_libre_ini=10000
 superficie_libre = superficie_libre_ini
 
-
+class hora:
+    """
+    Define la hora del día 
+    """
+    def __init__(self,step):
+        self.step = step
+        self.HOD = 0
+        self.HOD_h = []
 
 class Componente:
     """
@@ -31,7 +38,7 @@ class Componente:
         self.id = id
         self.name = name
         self.inv = inv
-        self.inv_h = []
+        self.inv_acum_h = []
         self.hijos = hijos
         self.area = area
 
@@ -39,13 +46,12 @@ class Tarea:
     """
     Define una tarea
     """
-    def __init__(self, id,name,componente,horas_min,coste,ritmo,ayudantes_req = 0):
+    def __init__(self, id,name,componente,horas_min,coste,ayudantes_req = 0):
         self.id = id
         self.componente = componente
         self.name = name
         self.horas_min = horas_min
         self.coste = coste
-        self.ritmo = ritmo
         self.ayudantes_req = ayudantes_req
 
 
@@ -69,75 +75,69 @@ class Operario:
 
 # ### PROBLEMA COMPLEJO
 
-# comp_0 = Componente(0,'ala',0,10)
-# comp_1 = Componente(1,'centro',0,10)
-# comp_2 = Componente(2,'espejo',0,10)
-# comp_3 = Componente(3,'tracking',0,10)
-# comp_4 = Componente(4,'semieje',0,10,[{'comp':comp_0,'unid_req':2},{'comp':comp_1,'unid_req':1}])
-# comp_5 = Componente(5,'eje',0,10,[{'comp':comp_2,'unid_req':4},{'comp':comp_4,'unid_req':2}])
-# comp_6 = Componente(6,'modulo',0,10,[{'comp':comp_5,'unid_req':3},{'comp':comp_3,'unid_req':4}])
-
-# componentes = [comp_0,comp_1,comp_2,comp_3,comp_4,comp_5,comp_6]
-
-# ocio = Tarea(0,'ocio',[],0,0,0)
-# tarea_1 = Tarea(1,'alas',[comp_0],1,10,1)
-# tarea_2 = Tarea(2,'centros',[comp_1],1,10,1)
-# tarea_3 = Tarea(3,'espejos',[comp_2],1,10,1)
-# tarea_4 = Tarea(4,'tracking',[comp_3],1,10,1)
-# tarea_5 = Tarea(5,'ejes',[comp_4,comp_5],1,10,1)
-# tarea_6 = Tarea(6,'modulo',[comp_6],1,10,1,1)
-
-# tareas = [tarea_1,tarea_2,tarea_3,tarea_4,tarea_5,tarea_6]
-
-# op_0 = Operario(0,'ruben',ocio)
-# op_1 = Operario(1,'yeray',ocio)
-# op_2 = Operario(2,'miguel',ocio)
-# operarios = [op_0,op_1,op_2]
-
-## PROBLEMA SIMPLE
-
+comp_0 = Componente(0,'ala',0,10)
+comp_1 = Componente(1,'centro',0,10)
+comp_2 = Componente(2,'espejo',0,10)
 comp_3 = Componente(3,'tracking',0,10)
-comp_5 = Componente(5,'eje',0,10)
+comp_4 = Componente(4,'semieje',0,10,[{'comp':comp_0,'unid_req':2},{'comp':comp_1,'unid_req':1}])
+comp_5 = Componente(5,'eje',0,10,[{'comp':comp_2,'unid_req':4},{'comp':comp_4,'unid_req':2}])
 comp_6 = Componente(6,'modulo',0,10,[{'comp':comp_5,'unid_req':3},{'comp':comp_3,'unid_req':4}])
 
-componentes = [comp_3,comp_5,comp_6]
+componentes = [comp_0,comp_1,comp_2,comp_3,comp_4,comp_5,comp_6]
 
 ocio = Tarea(0,'ocio',[],0,0,0)
-tarea_4 = Tarea(4,'tracking',[comp_3],1,10,1)
-tarea_5 = Tarea(5,'ejes',[comp_5],1,10,1)
-tarea_6 = Tarea(6,'modulo',[comp_6],1,10,1,1)
+tarea_1 = Tarea(1,'alas',[{'comp':comp_0,'ritmo':1}],1,10)
+tarea_2 = Tarea(2,'centros',[{'comp':comp_1,'ritmo':1}],1,10)
+tarea_3 = Tarea(3,'espejos',[{'comp':comp_2,'ritmo':1}],1,10)
+tarea_4 = Tarea(4,'tracking',[{'comp':comp_3,'ritmo':1}],1,10)
+tarea_5 = Tarea(5,'ejes',[{'comp':comp_4,'ritmo':2},{'comp':comp_5,'ritmo':1}],1,10)
+tarea_6 = Tarea(6,'modulo',[{'comp':comp_6,'ritmo':1}],1,10,1)
 
-tareas = [tarea_4,tarea_5,tarea_6]
+tareas = [tarea_1,tarea_2,tarea_3,tarea_4,tarea_5,tarea_6]
 
 op_0 = Operario(0,'ruben',ocio)
 op_1 = Operario(1,'yeray',ocio)
 op_2 = Operario(2,'miguel',ocio)
-
 operarios = [op_0,op_1,op_2]
+
+## PROBLEMA SIMPLE
+
+# comp_3 = Componente(3,'tracking',0,10)
+# comp_5 = Componente(5,'eje',0,10)
+# comp_6 = Componente(6,'modulo',0,10,[{'comp':comp_5,'unid_req':3},{'comp':comp_3,'unid_req':4}])
+
+# componentes = [comp_3,comp_5,comp_6]
+
+# ocio = Tarea(0,'ocio',[],0,0,0)
+# tarea_4 = Tarea(4,'tracking',[comp_3],1,10,1)
+# tarea_5 = Tarea(5,'ejes',[comp_5],1,10,1)
+# tarea_6 = Tarea(6,'modulo',[comp_6],1,10,1,1)
+
+# tareas = [tarea_4,tarea_5,tarea_6]
+
+# op_0 = Operario(0,'ruben',ocio)
+# op_1 = Operario(1,'yeray',ocio)
+# op_2 = Operario(2,'miguel',ocio)
+
+# operarios = [op_0,op_1,op_2]
+
+
 
 ### --------------------------
 
 
-zeros = np.zeros(num_max_steps)
-
-dict_pandas ={'hora_dia':zeros,'jornada':zeros}
-for op in operarios:
-    dict_pandas.update({op.name+'_tarea':zeros,op.name+'_proceso':zeros,op.name+'_ayudando':zeros,op.name+'_coste':zeros,op.name+'_tar_ant':zeros})
-
-for comp in componentes:
-    dict_pandas.update({comp.name:zeros})
-
-dict_pandas.update({'superf':zeros})
-
-data = pd.DataFrame(dict_pandas)
 ### -----------------------------
-
+def in_dictlist(key, value, my_dictlist):
+    for entry in my_dictlist:
+        if entry[key] == value:
+            return entry
+    return {}
 
 def check_area(tarea,superficie_libre):
     """
     Verifica que hay espacio suficiente
     """
-    return tarea.componente[0].area * tarea.ritmo < superficie_libre
+    return tarea.componente[0]['comp'].area * tarea.componente[0]['ritmo'] < superficie_libre
 
 def check_hours(tarea,hora_dia,jornada_end):
     """
@@ -157,84 +157,80 @@ def check_ayudantes(tarea,operarios):
 def check_inventario(tarea):
     grupo_comp_tarea = tarea.componente
     for c in tarea.componente:
-        for h in c.hijos:
-            if h['comp'] in grupo_comp_tarea:
+        for h in c['comp'].hijos:
+            if any(in_dictlist('comp',h['comp'], grupo_comp_tarea)):
                 pass
             else:
-                if h['comp'].inv < h['unid_req'] * tarea.ritmo:
+                if h['comp'].inv < h['unid_req'] * c['ritmo']:
                     return False
     return True
 
-def operario_bloqueado(op):
-    op.proceso_h.append(op.proceso)
-    return
+def operario_busca_ayudante(op,operarios):
+    # El operario busca otro operario libre para que le ayude
+    return operarios[[i for i in range(len(operarios)) if operarios[i].proceso == 0][0]]
 
 def calculo_coste(op,hora_dia):
     # Calculo el coste de trabajo de los operarios
     if op.tarea_anterior != op.tarea:
         if hora_dia == jornada_ini:
-            op.coste_acum += coste_hora
+            op.coste_acum_h.append(coste_hora)
         else: 
-            op.coste_acum += coste_hora * 1.1 #Aumento del coste por cambio de tarea
+            op.coste_acum_h.append(coste_hora*1.1) #Aumento del coste por cambio de tarea
     else:
-        op.coste_acum += coste_hora
+        op.coste_acum_h.append(coste_hora)
     return
 
-def operario_trabajando_nueva_tarea(op,superficie_libre):
+
+def operario_trabajando(op,superficie_libre):
     if op.ayudando_a == None: #Soy el operario principal de la tarea, los ayudantes no modifican inventario ni superficie
         for comp in op.tarea.componente:
-            #Modifico inventario de cada componentes de la tarea
-            comp.inv +=op.tarea.ritmo
-            #Reduzco la superficie libre ya que un nuevo componente ha sido fabricado
-            superficie_libre -= comp.area * op.tarea.ritmo
             
-        
+            comp['comp'].inv +=comp['ritmo'] #Modifico inventario de cada componentes de la tarea
+            superficie_libre -= comp['comp'].area * comp['ritmo'] #Reduzco la superficie libre ya que un nuevo componente ha sido fabricado
+            
             # Actualizo los hijos
-            for hijo in comp.hijos:
-                # Reduzco el inventario de los hijos del componente al haber sido utilizados
-                hijo['comp'].inv -=hijo['unid_req'] * op.tarea.ritmo 
-                # Aumento la superficie libre ya que los hijos de ese componente han sido utilizados
-                superficie_libre += hijo['comp'].area * hijo['unid_req'] * op.tarea.ritmo 
-    else: #Estoy ayudando a alguien
-        print(op.name)
-        pass
+            for hijo in comp['comp'].hijos:
+                hijo['comp'].inv -=hijo['unid_req'] * comp['ritmo']  # Reduzco el inventario de los hijos del componente al haber sido utilizados
+                superficie_libre += hijo['comp'].area * hijo['unid_req'] * comp['ritmo']  # Aumento la superficie libre ya que los hijos de ese componente han sido utilizados
     
-    # Todos los operarios consumen una hora de trabajo
+    op.tarea_h.append(op.tarea.name)
     op.proceso_h.append(op.proceso)
-
-    calculo_coste(op,hora_dia)
-
-        
+    op.ayudando_a_h.append('')
     
-    data.loc[i,op.name+'_tar_ant'] = op.tarea_anterior.name 
-    data.loc[i,op.name+'_coste'] = op.coste_acum
-    
-
+    calculo_coste(op,hora.HOD)
     op.tarea_anterior = op.tarea
-    
-   
     return
 
-def operario_sigue_en_tarea(op):
-    op.proceso_h.append(op.proceso)
-    calculo_coste(op,hora_dia)
+def operario_bloqueado(op):
+    op.ayudando_a = None
+    op.tarea = 'ocio'
+    op.proceso = 0
     
-    #Registro en el dataframe
+    op.tarea_h.append(op.tarea)
+    op.proceso_h.append(op.proceso)
+    op.ayudando_a_h.append('')
+    
 
-    data.loc[i,op.name+'_tar_ant'] = op.tarea_anterior.name
-
-    op.tarea = ocio
+    calculo_coste(op,hora.HOD)
     op.tarea_anterior = op.tarea
-
-    data.loc[i,op.name+'_coste'] = op.coste_acum
     return
 
-hora_dia=0
-i=0
-while i < num_max_steps and comp_6.inv < goal:
-    data.loc[i,'hora_dia'] = hora_dia
-    if check_horario(hora_dia,jornada_ini,jornada_end):
-        data.loc[i,'jornada'] = 'dentro'
+def operario_ayudando(op):
+ 
+    op.tarea = op.ayudando_a.tarea.name
+    op.proceso = op.ayudando_a.proceso
+    
+    op.tarea_h.append(op.tarea)
+    op.proceso_h.append(op.proceso)
+    op.ayudando_a_h.append(op.ayudando_a)
+    
+    calculo_coste(op,hora.HOD)
+    op.tarea_anterior = op.tarea
+    return
+
+hora = hora(0)
+while hora.step < num_max_steps and comp_6.inv < goal:
+    if check_horario(hora.HOD,jornada_ini,jornada_end):
         
         #Los operarios seleccionan la tarea en la que trabajar
         for op in operarios:
@@ -246,71 +242,78 @@ while i < num_max_steps and comp_6.inv < goal:
                 
                 # ---------------------------------
                 
-                data.loc[i,op.name+'_tarea'] = tarea_activa.name
+
                 if check_area(tarea_activa,superficie_libre):
-                    if check_hours(tarea_activa,hora_dia,jornada_end):
+                    if check_hours(tarea_activa,hora.HOD,jornada_end):
                         if check_inventario(tarea_activa):
                             if check_ayudantes(tarea_activa,operarios):
+                                
+                                op.ayudando_a = None
                                 op.tarea = tarea_activa
                                 op.proceso = tarea_activa.horas_min
-                                data.loc[i,op.name+'_proceso'] = op.proceso
+                                
                                 if op.tarea.ayudantes_req > 0:
-                                    # El operario busca otro operario libre para que le ayude
-                                    ayudante = operarios[[i for i in range(len(operarios)) if operarios[i].proceso == 0][0]]
-                                    #El operario le dice al primer operario libre que le ayude en su tarea
+                                    ayudante = operario_busca_ayudante(op,operarios)
+                                    
                                     ayudante.ayudando_a = op
                                     ayudante.tarea = tarea_activa
                                     ayudante.proceso = tarea_activa.horas_min
-                                    #Registro en dataframe
-                                    data.loc[i,ayudante.name+'_ayudando'] = op.name
-                                    data.loc[i,ayudante.name+'_proceso'] = ayudante.proceso
-                                    data.loc[i,ayudante.name+'_tarea'] = ayudante.tarea.name
-        
+                                    
 
-                if op.proceso > 0:
-                    operario_trabajando_nueva_tarea(op,superficie_libre)
-                else:
+        for op in operarios:
+            if op.proceso > 0:
+                operario_trabajando(op,superficie_libre)
+            else:
+                if op.ayudando_a == None:
                     operario_bloqueado(op)
-                    
-            else: #Operario continua con la tarea (de más de 1h)
-                operario_sigue_en_tarea(op)
-        
-        
+                else:
+                    operario_ayudando(op)          
+
         #Todos los operarios terminan la hora de trabajo
         for op in operarios:
             op.proceso = max(0,op.proceso -1)
             #Si la tarea ha terminado, reseteo las variables
             if op.proceso == 0:
-               op.tarea = ocio
                op.ayudando_a = None
             
     else:
         for op in operarios:
+            op.ayudando_a_h.append('')
             op.proceso_h.append(0)
-        data.loc[i,'jornada'] = 'fuera'
+            op.coste_acum_h.append(0)
+            op.tarea_h.append('ocio')
 
 
 
-
-    # Alimento el dataframe
+    # Alimento el inventario de los componentes
     for comp in componentes:
-        data.loc[i,comp.name] = comp.inv    
+        comp.inv_acum_h.append(comp.inv)
+ 
     
-    data.loc[i,'superf'] = superficie_libre    
+
     
-    
-    hora_dia+=1
-    i+=1
-    if hora_dia == 24:
-        hora_dia = 0
+    hora.HOD_h.append(hora.HOD)
+    hora.HOD+=1
+    hora.step+=1
+    if hora.HOD == 24:
+        hora.HOD = 0
 
 
 #### Results
-superficie_ocupada = superficie_libre_ini - min(data[data['superf'] > 1]['superf'])
-coste_operarios = sum(op.coste_acum for op in operarios)
-semanas_totales = i/7
+dict_pandas ={'hora_dia':hora.HOD_h}
+for op in operarios:
+    dict_pandas.update({op.name+'_tarea':op.tarea_h,op.name+'_proceso':op.proceso_h,op.name+'_ayudando':op.ayudando_a_h,op.name+'_coste':op.coste_acum_h})
+
+for comp in componentes:
+    dict_pandas.update({comp.name:comp.inv_acum_h})
+
+data = pd.DataFrame(dict_pandas)
+
+#superficie_ocupada = superficie_libre_ini - min(data[data['superf'] > 1]['superf'])
+coste_operarios = sum(sum(op.coste_acum_h)for op in operarios)
+semanas_totales = hora.step/7
 
 print("\n --- RESULTADOS ---\n superficie ocupada:",
-      superficie_ocupada," m2 \n coste operarios: ",
+#      superficie_ocupada," m2 \n coste operarios: ",
       coste_operarios, " € \n semanas totales: ",
       round(semanas_totales,2))
